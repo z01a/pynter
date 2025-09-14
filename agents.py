@@ -63,3 +63,56 @@ class MaxNAgent(Agent):
 
         return best_score, best_action
 
+class MinimaxAgent(Agent):
+    def get_chosen_action(cls, state, max_depth):
+        time.sleep(0.5)
+        score, action = cls.minimax(state, max_depth, state.get_on_move_chr())
+        return action
+
+    @classmethod
+    def get_opponents(cls, state, player):
+        return list(filter(lambda x: x != player, state.get_scores().keys()))
+
+    @classmethod
+    def evaluate(cls, state, player):
+        return state.get_score(player) - state.get_score(cls.get_opponents(state, player)[0])
+
+    @classmethod
+    def minimax(cls, state, depth, player):
+        if depth == 0 or state.is_goal_state():
+            return cls.evaluate(state, player), None
+
+        if state.get_on_move_chr() == player:
+            best_result = float("-inf")
+            best_action = None
+
+            actions = state.get_legal_actions()
+            if not actions:
+                return cls.evaluate(state, player), None
+
+            for action in actions:
+                new_state = state.generate_successor_state(action)
+                result, move = cls.minimax(new_state, depth - 1, player)
+
+                if result > best_result:
+                    best_result = result
+                    best_action = action
+
+            return best_result, best_action
+        else:
+            best_result = float("+inf")
+            best_action = None
+
+            actions = state.get_legal_actions()
+            if not actions:
+                return cls.evaluate(state, player), None
+
+            for action in actions:
+                new_state = state.generate_successor_state(action)
+                result, move = cls.minimax(new_state, depth - 1, player)
+
+                if result < best_result:
+                    best_result = result
+                    best_action = action
+
+            return best_result, best_action
