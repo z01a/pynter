@@ -9,19 +9,20 @@ class Agent:
         self.id = Agent.ident
         Agent.ident += 1
 
-    def get_chosen_action(self, state, max_depth):
+    @classmethod
+    def get_chosen_action(cls, state, max_depth):
         pass
 
 
 class RandomAgent(Agent):
-    def get_chosen_action(self, state, max_depth):
+    def get_chosen_action(cls, state, max_depth):
         time.sleep(0.5)
         actions = state.get_legal_actions()
         return actions[random.randint(0, len(actions) - 1)]
 
 
 class GreedyAgent(Agent):
-    def get_chosen_action(self, state, max_depth):
+    def get_chosen_action(cls, state, max_depth):
         time.sleep(0.5)
         actions = state.get_legal_actions()
         best_score, best_action = None, None
@@ -32,3 +33,33 @@ class GreedyAgent(Agent):
                 best_action = action
                 best_score = score
         return best_action
+
+class MaxNAgent(Agent):
+    def get_chosen_action(cls, state, max_depth):
+        time.sleep(0.5)
+        score, action = cls.max_n(state, max_depth)
+        return action
+
+    @classmethod
+    def max_n(cls, state, depth):
+        if depth == 0 or state.is_goal_state():
+            return state.get_scores(), None
+
+        best_score, best_action = None, None
+
+        player = state.get_on_move_chr()
+        actions = state.get_legal_actions() or []
+
+        if not actions:
+            return state.get_scores(), None
+
+        for action in actions:
+            new_state = state.generate_successor_state(action)
+            score, move = cls.max_n(new_state, depth - 1)
+
+            if best_score is None or score[player] > best_score[player]:
+                best_score = score
+                best_action = action
+
+        return best_score, best_action
+
